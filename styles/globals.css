@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,body,#__next { height:100%; }
+body {
+  background: white;
+  color: #111827;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+.dark body {
+  background: #0b1220;
+  color: #e6eef8;
+}
+a { color: inherit; }
+.btn-gold {
+  @apply bg-gold text-white px-4 py-2 rounded-2xl shadow-sm hover:opacity-95 transition-opacity duration-250;
+}
+.card {
+  @apply bg-white rounded-2xl shadow p-4;
+}
+.dark .card {
+  background: #071022;
+}
+.fade { transition: all .25s ease-in-out; }
