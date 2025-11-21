@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { supabase } from '../lib/supabaseClient'
 import Image from 'next/image'
-import { motion } from 'framer-motion'
 
 export default function Home({ featured=[] }) {
   return (
@@ -12,7 +11,7 @@ export default function Home({ featured=[] }) {
         </div>
         <h1 className="text-3xl mt-4 font-bold">xenora — premium, sexy, clean</h1>
         <p className="max-w-xl mx-auto mt-4 text-gray-600">Curated pieces that celebrate beauty. Mobile-first, smooth experience.</p>
-        <motion.div whileTap={{scale:0.98}} className="mt-6"><Link href="/collections"><a className="btn-gold">Shop Collections</a></Link></motion.div>
+        <div whileTap={{scale:0.98}} className="mt-6"><Link href="/collections"><a className="btn-gold">Shop Collections</a></Link></div>
       </div>
 
       <div className="mt-8">
@@ -20,13 +19,13 @@ export default function Home({ featured=[] }) {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {featured.map(p => (
             <Link key={p.id} href={'/product/'+p.id}><a>
-              <motion.div whileHover={{ y:-4 }} className="card">
+              <div whileHover={{ y:-4 }} className="card">
                 <div className="w-full h-36 relative rounded-md mb-2 overflow-hidden">
                   {p.image_url ? <Image src={p.image_url} alt={p.name} fill style={{objectFit:'cover'}} sizes="(max-width: 640px) 100vw, 33vw" /> : null}
                 </div>
                 <div className="font-medium">{p.name}</div>
                 <div className="text-sm text-gray-500">{p.rate}</div>
-              </motion.div>
+              </div>
             </a></Link>
           ))}
         </div>

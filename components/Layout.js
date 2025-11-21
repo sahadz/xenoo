@@ -1,6 +1,5 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 
 export default function Layout({children, title='xenora'}) {
@@ -51,9 +50,9 @@ export default function Layout({children, title='xenora'}) {
             </nav>
           </div>
         </header>
-        <motion.main initial={{opacity:0, y:6}} animate={{opacity:1, y:0}} transition={{duration:0.45}} className="flex-1 max-w-4xl mx-auto w-full p-4">
+        <div initial={{opacity:0, y:6}} animate={{opacity:1, y:0}} transition={{duration:0.45}} className="flex-1 max-w-4xl mx-auto w-full p-4">
           {children}
-        </motion.main>
+        </div>
         <footer className="p-6 text-center text-sm">
           © {new Date().getFullYear()} xenora — crafted with care.
         </footer>

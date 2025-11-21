@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import Image from 'next/image'
-import { motion } from 'framer-motion'
 
 export default function ProductPage({ product }) {
   const [size, setSize] = useState(product?.sizes?.[0] || '')
