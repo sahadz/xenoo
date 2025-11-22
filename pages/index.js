@@ -9,7 +9,7 @@ export default function Home({ featured=[] }) {
         <div className="mx-auto w-28 h-28 relative">
           <Image src="/logo.png" alt="xenora" fill style={{objectFit:'contain'}} />
         </div>
-        <h1 className="text-3xl mt-4 font-bold">xenora — premium, sexy, clean</h1>
+        <h1 className="text-3xl mt-4 font-bold">xenora — ijaaaschante brand</h1>
         <p className="max-w-xl mx-auto mt-4 text-gray-600">Curated pieces that celebrate beauty. Mobile-first, smooth experience.</p>
         <div whileTap={{scale:0.98}} className="mt-6"><Link href="/collections"><a className="btn-gold">Shop Collections</a></Link></div>
       </div>
