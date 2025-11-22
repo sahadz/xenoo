@@ -9,7 +9,6 @@ export default function App({ Component, pageProps }) {
   const [supabaseClient] = useState(() => createPagesBrowserClient())
 
   return (
-    // This provider is CRITICAL for server-side auth to work
     <SessionContextProvider
       supabaseClient={supabaseClient}
       initialSession={pageProps.initialSession}
