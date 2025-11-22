@@ -1,51 +1,70 @@
 import { useState } from "react";
-import { supabase } from "../../../../lib/supabaseClient";
+import { supabase } from "../../../lib/supabaseClient"; // <- correct relative path
 import { useRouter } from "next/router";
 
 export default function Edit({ product }) {
   const router = useRouter();
 
   const [form, setForm] = useState({
-    name: product.name,
-    rate: product.rate,
-    sizes: product.sizes.join(","),
-    description: product.description,
+    name: product?.name || "",
+    rate: product?.rate || "",
+    sizes: (product?.sizes || []).join(","),
+    description: product?.description || "",
     image: null,
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  if (!product) return <div className="card p-6">Product not found</div>;
 
   async function handleSubmit(e) {
     e.preventDefault();
-    let image_url = product.image_url;
+    setLoading(true);
+    setError(null);
 
     try {
+      let image_url = product.image_url || null;
+
       if (form.image) {
         const file = form.image;
         const ext = file.name.split(".").pop();
-        const filename = `${Date.now()}.${ext}`;
-        const path = `public/${filename}`;
+        const fileName = `${Date.now()}.${ext}`;
+        const filePath = `public/${fileName}`;
 
-        const { data: uploadData, error: uploadError } =
-          await supabase.storage.from("products").upload(path, file);
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("products")
+          .upload(filePath, file, { cacheControl: "3600", upsert: true });
 
         if (uploadError) throw uploadError;
 
-        const { data: urlData } =
-          supabase.storage.from("products").getPublicUrl(uploadData.path);
+        const { data: urlData } = supabase.storage
+          .from("products")
+          .getPublicUrl(uploadData.path);
 
         image_url = urlData.publicUrl;
       }
 
-      await supabase.from("products").update({
+      const updated = {
         name: form.name,
         rate: form.rate,
-        sizes: form.sizes.split(",").map((s) => s.trim()),
+        sizes: form.sizes.split(",").map((s) => s.trim()).filter(Boolean),
         description: form.description,
         image_url,
-      }).eq("id", product.id);
+      };
+
+      const { error: updateError } = await supabase
+        .from("products")
+        .update(updated)
+        .eq("id", product.id);
+
+      if (updateError) throw updateError;
 
       router.push("/admin");
     } catch (err) {
-      alert(err.message);
+      console.error("Update error:", err);
+      setError(err.message || "An error occurred");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -53,30 +72,56 @@ export default function Edit({ product }) {
     <div className="card p-6 max-w-lg mx-auto">
       <h2 className="text-xl font-semibold mb-4">Edit Product</h2>
       <form onSubmit={handleSubmit}>
-        <input className="w-full border p-2 mb-3" value={form.name} onChange={(e)=>setForm({...form,name:e.target.value})}/>
-        <input className="w-full border p-2 mb-3" value={form.rate} onChange={(e)=>setForm({...form,rate:e.target.value})}/>
-        <input className="w-full border p-2 mb-3" value={form.sizes} onChange={(e)=>setForm({...form,sizes:e.target.value})}/>
-        <textarea className="w-full border p-2 mb-3" value={form.description} onChange={(e)=>setForm({...form,description:e.target.value})}/>
-        <input type="file" className="w-full mb-3" onChange={(e)=>setForm({...form,image:e.target.files[0]})}/>
-        <button className="btn-gold">Save</button>
+        <label className="block mb-1">Name</label>
+        <input className="w-full border p-2 mb-3" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+
+        <label className="block mb-1">Rate</label>
+        <input className="w-full border p-2 mb-3" value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value })} />
+
+        <label className="block mb-1">Sizes</label>
+        <input className="w-full border p-2 mb-3" value={form.sizes} onChange={(e) => setForm({ ...form, sizes: e.target.value })} />
+
+        <label className="block mb-1">Description</label>
+        <textarea className="w-full border p-2 mb-3" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+
+        <label className="block mb-1">Image</label>
+        <input type="file" accept="image/*" className="w-full mb-3" onChange={(e) => setForm({ ...form, image: e.target.files[0] })} />
+
+        {error && <div className="text-red-600 mb-3">{error}</div>}
+
+        <div className="flex gap-2">
+          <button className="btn-gold" type="submit" disabled={loading}>
+            {loading ? "Saving..." : "Save"}
+          </button>
+          <button type="button" className="px-4 py-2 border rounded" onClick={() => router.push("/admin")}>
+            Cancel
+          </button>
+        </div>
       </form>
     </div>
   );
 }
 
-export async function getServerSideProps(ctx) {
+// Server-side auth & fetch (unchanged)
+export const getServerSideProps = async (ctx) => {
   const { createServerSupabaseClient } = await import("@supabase/auth-helpers-nextjs");
   const supabase = createServerSupabaseClient(ctx);
 
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return { redirect: { destination: "/admin/login", permanent: false } };
+  if (!session) {
+    return { redirect: { destination: "/admin/login", permanent: false } };
+  }
 
+  // admin check
   const uid = session.user.id;
   const { data: admin } = await supabase.from("admins").select("uid").eq("uid", uid).maybeSingle();
-  if (!admin) return { redirect: { destination: "/", permanent: false } };
+  if (!admin) {
+    return { redirect: { destination: "/", permanent: false } };
+  }
 
-  const id = ctx.params.id;
+  const { params } = ctx;
+  const id = params.id;
   const { data: product } = await supabase.from("products").select("*").eq("id", id).single();
 
-  return { props: { product } };
-}
+  return { props: { product: product || null } };
+};
